@@ -5,6 +5,7 @@ import ca.carleton.secpipe.core.Severity;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 
 import java.util.List;
@@ -53,8 +54,15 @@ public class PathTraversalRule implements JavaRule {
         if (args.isEmpty() || args.stream().allMatch(TaintTracker::isConstant)) return;
         TaintTracker taint = ctx.taintFor(node);
         TaintLevel level = TaintLevel.NONE;
-        for (Expression a : args) level = TaintLevel.max(level, taint.level(a));
+        boolean onlyReportedPaths = true;
+        for (Expression a : args) {
+            TaintLevel argLevel = taint.level(a);
+            level = TaintLevel.max(level, argLevel);
+            if (argLevel != TaintLevel.NONE && !isPathVariable(a, taint)) onlyReportedPaths = false;
+        }
         if (level == TaintLevel.NONE) return;
+        // Opening a File/Path variable that was built from tainted input in this method was already reported at its construction.
+        if (onlyReportedPaths) return;
         if (level == TaintLevel.PARAMETER && !ctx.fileHandlesRequests()) return;
         boolean validated = (taint.bodyContains("getCanonicalPath") || taint.bodyContains("normalize()")
                 || taint.bodyContains("toRealPath")) && taint.bodyContains("startsWith");
@@ -65,5 +73,21 @@ public class PathTraversalRule implements JavaRule {
         ctx.report(node, id(), cwe(), severity, confidence, "Path traversal",
                 api + " uses a path derived from " + (level == TaintLevel.REQUEST ? "HTTP request input" : "a method parameter")
                         + " without a canonical-path check. Input such as '../../etc/passwd' can escape the intended directory.");
+    }
+
+    private static boolean isPathVariable(Expression arg, TaintTracker taint) {
+        if (!(arg instanceof NameExpr name)) return false;
+        List<Expression> values = taint.assignedValues(name.getNameAsString());
+        return !values.isEmpty() && values.stream().allMatch(PathTraversalRule::isPathConstruction);
+    }
+
+    private static boolean isPathConstruction(Expression e) {
+        if (e instanceof ObjectCreationExpr oc) return FILE_TYPES.contains(oc.getType().getNameAsString());
+        if (e instanceof MethodCallExpr mc) {
+            String scope = mc.getScope().map(Object::toString).orElse("");
+            return (PATH_FACTORIES.contains(mc.getNameAsString()) && PATH_SCOPES.contains(scope))
+                    || mc.getNameAsString().equals("resolve");
+        }
+        return false;
     }
 }

@@ -105,6 +105,11 @@ public class TaintTracker {
         if (isDynamicString(value) || (concatenation && !isConstant(value))) dynamicStrings.add(name);
     }
 
+    /** Every value assigned to the local variable or parameter {@code name} within the callable. */
+    public List<Expression> assignedValues(String name) {
+        return assignedValues.getOrDefault(name, List.of());
+    }
+
     public TaintLevel level(Expression e) {
         if (e == null || e instanceof LiteralExpr) return TaintLevel.NONE;
         if (e instanceof NameExpr n) return taint.getOrDefault(n.getNameAsString(), TaintLevel.NONE);

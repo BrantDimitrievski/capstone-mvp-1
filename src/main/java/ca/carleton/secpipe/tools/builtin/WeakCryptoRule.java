@@ -29,7 +29,7 @@ public class WeakCryptoRule implements JavaRule {
     @Override
     public void check(RuleContext ctx) {
         for (MethodCallExpr mc : ctx.cu().findAll(MethodCallExpr.class)) {
-            String scope = mc.getScope().map(Object::toString).orElse("");
+            String scope = simpleName(mc.getScope().map(Object::toString).orElse(""));
             String name = mc.getNameAsString();
             if (scope.equals("DigestUtils") && DIGEST_UTILS.contains(name)) {
                 weakHash(ctx, mc, name.replace("Hex", "").toUpperCase(Locale.ROOT));
@@ -64,6 +64,11 @@ public class WeakCryptoRule implements JavaRule {
                 }
             }
         }
+    }
+
+    /** {@code java.security.MessageDigest} to {@code MessageDigest}, so fully qualified calls match too. */
+    private static String simpleName(String scope) {
+        return scope.matches("[a-z_][\\w]*(\\.[a-z_][\\w]*)*\\.[A-Z]\\w*") ? scope.substring(scope.lastIndexOf('.') + 1) : scope;
     }
 
     private void weakHash(RuleContext ctx, MethodCallExpr mc, String algo) {
