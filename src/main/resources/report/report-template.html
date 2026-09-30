@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__SECPIPE_TITLE__</title>
+<style>
+  :root {
+    --bg: #f6f7fb; --panel: #ffffff; --text: #0f172a; --muted: #64748b; --line: #e2e8f0; --accent: #4f46e5;
+    --crit: #be123c; --crit-bg: #ffe4e6; --high: #ea580c; --high-bg: #ffedd5; --med: #b45309; --med-bg: #fef3c7;
+    --low: #0369a1; --low-bg: #e0f2fe; --info: #475569; --info-bg: #f1f5f9; --ok: #15803d; --ok-bg: #dcfce7;
+    --code-bg: #0f172a; --code-text: #e2e8f0; --shadow: 0 1px 2px rgba(15,23,42,.06), 0 4px 16px rgba(15,23,42,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1020; --panel: #121a2f; --text: #e2e8f0; --muted: #94a3b8; --line: #1f2a44; --accent: #818cf8;
+      --crit-bg: #4c0519; --high-bg: #431407; --med-bg: #422006; --low-bg: #082f49; --info-bg: #1e293b; --ok-bg: #052e16;
+      --crit: #fda4af; --high: #fdba74; --med: #fcd34d; --low: #7dd3fc; --info: #cbd5e1; --ok: #86efac;
+      --code-bg: #060a16; --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .2px; }
+  .logo { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #0ea5e9); color: #fff; font-size: 13px; }
+  .meta { color: var(--muted); font-size: 13px; text-align: right; }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 0 0 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .subtitle { color: var(--muted); margin: 0 0 22px; }
+  .cards { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .card .n { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .card .l { color: var(--muted); font-size: 13px; }
+  .card.crit .n { color: var(--crit); } .card.high .n { color: var(--high); } .card.med .n { color: var(--med); } .card.low .n { color: var(--low); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow); margin-bottom: 18px; }
+  .grid2 .panel { margin-bottom: 0; }
+  .sevbar { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: var(--info-bg); margin-bottom: 12px; }
+  .sevbar span { display: block; height: 100%; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 13px; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .owasp-row { display: grid; grid-template-columns: 74px 1fr 34px; align-items: center; gap: 10px; font-size: 13px; margin: 6px 0; }
+  .owasp-row .bar { height: 8px; border-radius: 99px; background: var(--info-bg); overflow: hidden; }
+  .owasp-row .bar span { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+  .owasp-row .name { grid-column: 2; color: var(--muted); font-size: 12px; margin-top: -4px; }
+  .muted { color: var(--muted); }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .toolbar h2 { margin: 0 auto 0 0; }
+  input[type=search], select { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 14px; }
+  input[type=search] { min-width: 240px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 99px; padding: 4px 10px; font-size: 12px; cursor: pointer; user-select: none; }
+  .chip[aria-pressed=true] { color: var(--text); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .badge { display: inline-block; min-width: 72px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .05em; padding: 3px 8px; border-radius: 6px; }
+  .b-CRITICAL { background: var(--crit-bg); color: var(--crit); } .b-HIGH { background: var(--high-bg); color: var(--high); }
+  .b-MEDIUM { background: var(--med-bg); color: var(--med); } .b-LOW { background: var(--low-bg); color: var(--low); } .b-INFO { background: var(--info-bg); color: var(--info); }
+  .pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); margin-right: 4px; }
+  details.f { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: var(--panel); }
+  details.f[open] { border-color: var(--accent); }
+  details.f > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 84px 1fr 70px 96px; gap: 14px; align-items: center; padding: 11px 14px; }
+  details.f > summary::-webkit-details-marker { display: none; }
+  .ftitle { font-weight: 600; }
+  .floc { color: var(--muted); font-size: 12.5px; word-break: break-all; }
+  .score { font-weight: 700; text-align: right; }
+  .score small { color: var(--muted); font-weight: 400; }
+  .verdict { font-size: 12px; text-align: right; color: var(--muted); }
+  .verdict.LIKELY { color: var(--crit); font-weight: 600; }
+  .body { padding: 4px 16px 16px; border-top: 1px dashed var(--line); }
+  .kv { display: grid; grid-template-columns: 150px 1fr; gap: 6px 14px; margin: 12px 0; font-size: 14px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+  pre { background: var(--code-bg); color: var(--code-text); padding: 12px 14px; border-radius: 8px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; margin: 8px 0 14px; }
+  .fix { white-space: pre-wrap; }
+  h3 { font-size: 14px; margin: 16px 0 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .st-OK { color: var(--ok); font-weight: 600; } .st-FAILED { color: var(--crit); font-weight: 600; } .st-SKIPPED { color: var(--muted); }
+  .empty { text-align: center; padding: 38px 10px; color: var(--muted); }
+  .empty .big { font-size: 18px; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+  .timing { display: grid; grid-template-columns: 140px 1fr 70px; gap: 10px; align-items: center; font-size: 13px; margin: 5px 0; }
+  .timing .bar { height: 8px; background: var(--info-bg); border-radius: 99px; overflow: hidden; }
+  .timing .bar span { display: block; height: 100%; background: #0ea5e9; }
+  footer { color: var(--muted); font-size: 12.5px; text-align: center; padding: 10px 0 30px; }
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    header.top { padding: 12px 16px; }
+    .meta { display: none; }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    details.f > summary { grid-template-columns: 1fr auto; }
+    details.f > summary .verdict { display: none; }
+    details.f > summary .badge { grid-column: 1 / -1; justify-self: start; }
+    .kv { grid-template-columns: 1fr; }
+    .kv dt { margin-top: 6px; }
+    input[type=search] { min-width: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo">sp</span><span>secpipe</span></div>
+  <div class="meta" id="meta"></div>
+</header>
+<main>
+  <noscript><div class="panel">This dashboard needs JavaScript. The same content is available in report.md, findings.csv and report.json.</div></noscript>
+  <h1 id="project"></h1>
+  <p class="subtitle" id="subtitle"></p>
+  <section class="cards" id="cards"></section>
+  <section class="grid2">
+    <div class="panel"><h2>Severity distribution</h2><div class="sevbar" id="sevbar"></div><div class="legend" id="legend"></div>
+      <div class="kv" id="projectFacts"></div></div>
+    <div class="panel"><h2>OWASP Top 10 (2021)</h2><div id="owasp"></div></div>
+  </section>
+  <section class="panel">
+    <div class="toolbar">
+      <h2>Findings</h2>
+      <input type="search" id="q" placeholder="Search title, CWE, CVE, file..." aria-label="Search findings">
+      <div class="chips" id="chips" role="group" aria-label="Filter by severity"></div>
+      <select id="cat" aria-label="Filter by category">
+        <option value="">All categories</option><option value="CODE">Source code</option><option value="DEPENDENCIES">Dependencies</option>
+      </select>
+    </div>
+    <div id="findings"></div>
+  </section>
+  <section class="grid2">
+    <div class="panel"><h2>Analyzers</h2><div style="overflow-x:auto"><table id="tools"></table></div></div>
+    <div class="panel"><h2>Pipeline timings</h2><div id="timings"></div></div>
+  </section>
+</main>
+<footer id="footer"></footer>
+<script id="secpipe-data" type="application/json">"__SECPIPE_DATA__"</script>
+<script>
+(function () {
+  "use strict";
+  var data = JSON.parse(document.getElementById("secpipe-data").textContent);
+  var SEV = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"];
+  var SEV_COLOR = { CRITICAL: "var(--crit)", HIGH: "var(--high)", MEDIUM: "var(--med)", LOW: "var(--low)", INFO: "var(--info)" };
+  var findings = data.findings || [];
+  var project = data.project || {};
+
+  function el(tag, attrs) {
+    var e = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === "text") e.textContent = attrs[k];
+      else if (k === "cls") e.className = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c == null) continue;
+      e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    }
+    return e;
+  }
+  function link(href, text) { var a = el("a", { href: href, target: "_blank", rel: "noopener noreferrer", text: text || href }); return a; }
+  function fmtMs(ms) { return ms < 1000 ? ms + " ms" : (ms / 1000).toFixed(1) + " s"; }
+  function label(f) {
+    if (f.category === "DEPENDENCIES" && f.dependency) return (f.cves && f.cves[0] || f.vulnerabilityId) + " in " + f.dependency.artifact + " " + f.dependency.version;
+    return f.title || f.ruleId;
+  }
+  function loc(f) { return f.category === "DEPENDENCIES" ? (f.dependency ? f.dependency.group + ":" + f.dependency.artifact + ":" + f.dependency.version : f.file) : f.file + (f.line > 0 ? ":" + f.line : ""); }
+
+  document.getElementById("project").textContent = "Security report: " + (project.name || "project");
+  document.getElementById("subtitle").textContent = "Scanned " + (project.root || "") + " in " + fmtMs(data.durationMs || 0) + (data.settings && data.settings.aiEnabled ? " with AI review (" + data.settings.llmModel + ")" : " (deterministic mode)") + ".";
+  document.getElementById("meta").textContent = "secpipe " + data.version + " | " + (data.startedAt || "").replace("T", " ").replace(/\..*/, "");
+  document.getElementById("footer").textContent = "Generated by secpipe " + data.version + ". Verify fixes with: secpipe verify " + (project.root || ".") + " --baseline report.json";
+
+  var counts = {}; SEV.forEach(function (s) { counts[s] = 0; });
+  findings.forEach(function (f) { counts[f.severity] = (counts[f.severity] || 0) + 1; });
+  var code = findings.filter(function (f) { return f.category === "CODE"; }).length;
+  var cards = document.getElementById("cards");
+  [["Total findings", findings.length, ""], ["Critical", counts.CRITICAL, "crit"], ["High", counts.HIGH, "high"], ["Medium", counts.MEDIUM, "med"], ["Low / info", counts.LOW + counts.INFO, "low"], ["Code / deps", code + " / " + (findings.length - code), ""]]
+    .forEach(function (c) { cards.appendChild(el("div", { cls: "card " + c[2] }, el("div", { cls: "n", text: String(c[1]) }), el("div", { cls: "l", text: c[0] }))); });
+
+  var bar = document.getElementById("sevbar"), legend = document.getElementById("legend");
+  SEV.forEach(function (s) {
+    if (counts[s] > 0) { var seg = el("span", { title: s + ": " + counts[s] }); seg.style.width = (100 * counts[s] / findings.length) + "%"; seg.style.background = SEV_COLOR[s]; bar.appendChild(seg); }
+    var dot = el("span", { cls: "dot" }); dot.style.background = SEV_COLOR[s];
+    legend.appendChild(el("span", null, dot, s.charAt(0) + s.slice(1).toLowerCase() + " " + counts[s]));
+  });
+  var facts = document.getElementById("projectFacts");
+  [["Language", project.language + " (" + project.buildTool + ")"], ["Size", project.sourceFiles + " files, " + (project.linesOfCode || 0).toLocaleString() + " lines"],
+   ["Structure", project.classes + " classes, " + project.methods + " methods, " + project.httpEndpoints + " HTTP endpoints"],
+   ["Dependencies", String(project.dependencies)], ["Frameworks", (project.frameworks || []).join(", ") || "none detected"],
+   ["Regression tests", (data.generatedTests || []).length + " generated"]]
+    .forEach(function (kv) { facts.appendChild(el("dt", { text: kv[0] })); facts.appendChild(el("dd", { text: kv[1] })); });
+
+  var owasp = document.getElementById("owasp"), oc = {}, maxO = 0;
+  findings.forEach(function (f) { if (f.owasp) { var id = f.owasp.split(" ")[0]; oc[id] = (oc[id] || 0) + 1; maxO = Math.max(maxO, oc[id]); } });
+  Object.keys(data.owaspCatalog || {}).forEach(function (id) {
+    var n = oc[id] || 0, b = el("span"); b.style.width = maxO ? (100 * n / maxO) + "%" : "0";
+    var row = el("div", { cls: "owasp-row" }, el("span", { cls: "mono", text: id.replace(":2021", "") }), el("div", { cls: "bar" }, b), el("span", { cls: n ? "" : "muted", text: String(n) }));
+    owasp.appendChild(row);
+    owasp.appendChild(el("div", { cls: "owasp-row" }, el("span"), el("span", { cls: "name", text: data.owaspCatalog[id] })));
+  });
+
+  var active = {}; SEV.forEach(function (s) { active[s] = true; });
+  var chips = document.getElementById("chips");
+  SEV.forEach(function (s) {
+    var c = el("button", { cls: "chip", type: "button", "aria-pressed": "true", text: s.charAt(0) + s.slice(1).toLowerCase() + " (" + counts[s] + ")" });
+    c.addEventListener("click", function () { active[s] = !active[s]; c.setAttribute("aria-pressed", String(active[s])); render(); });
+    chips.appendChild(c);
+  });
+  document.getElementById("q").addEventListener("input", render);
+  document.getElementById("cat").addEventListener("change", render);
+
+  function detail(f) {
+    var body = el("div", { cls: "body" });
+    if (f.message) body.appendChild(el("p", { text: f.message }));
+    if (f.category === "CODE" && f.snippet) body.appendChild(el("pre", { text: (f.line > 0 ? f.line + " | " : "") + f.snippet }));
+    var kv = el("dl", { cls: "kv" });
+    function row(k, v) { if (v == null || v === "" || (v.length === 0)) return; kv.appendChild(el("dt", { text: k })); var dd = el("dd"); if (typeof v === "string") dd.textContent = v; else dd.appendChild(v); kv.appendChild(dd); }
+    var cw = el("span"); (f.cwes || []).forEach(function (c, i) { if (i) cw.appendChild(document.createTextNode(", ")); cw.appendChild(link("https://cwe.mitre.org/data/definitions/" + c.slice(4) + ".html", c)); });
+    var cv = el("span"); (f.cves || []).forEach(function (c, i) { if (i) cv.appendChild(document.createTextNode(", ")); cv.appendChild(link("https://nvd.nist.gov/vuln/detail/" + c, c)); });
+    row("CWE", (f.cwes || []).length ? cw : null);
+    row("CVE", (f.cves || []).length ? cv : null);
+    if (f.vulnerabilityId && (f.cves || []).indexOf(f.vulnerabilityId) < 0) row("Advisory", link("https://osv.dev/vulnerability/" + f.vulnerabilityId, f.vulnerabilityId));
+    row("OWASP Top 10", f.owasp);
+    if (f.dependency) row("Package", f.dependency.group + ":" + f.dependency.artifact + " " + f.dependency.version + (f.dependency.fixedVersion ? "  ->  fixed in " + f.dependency.fixedVersion : "  (no fix published)"));
+    row("Score", f.score + " / 10  (severity " + f.severity + ", confidence " + f.confidence + ")");
+    row("Exploitability", f.exploitability.verdict + ": " + f.exploitability.rationale + " [" + f.exploitability.source + "]");
+    row("Detected by", (f.tools || []).join(", ") + "  (" + f.ruleId + ")");
+    row("Regression test", f.generatedTest);
+    body.appendChild(kv);
+    if (f.explanation && f.explanation !== f.message) { body.appendChild(el("h3", { text: "Why it matters" })); body.appendChild(el("p", { text: f.explanation })); }
+    if (f.fix) {
+      body.appendChild(el("h3", { text: "Suggested fix" + (f.fixSource === "llm" ? " (AI-assisted)" : "") }));
+      var parts = f.fix.split("\n\nExample:\n");
+      body.appendChild(el("div", { cls: "fix", text: parts[0] }));
+      if (parts[1]) body.appendChild(el("pre", { text: parts[1] }));
+    }
+    if ((f.references || []).length) {
+      body.appendChild(el("h3", { text: "References" }));
+      var ul = el("ul"); f.references.forEach(function (r) { ul.appendChild(el("li", null, link(r))); }); body.appendChild(ul);
+    }
+    return body;
+  }
+
+  function render() {
+    var q = document.getElementById("q").value.toLowerCase().trim();
+    var cat = document.getElementById("cat").value;
+    var box = document.getElementById("findings");
+    box.textContent = "";
+    if (!findings.length) {
+      box.appendChild(el("div", { cls: "empty" }, el("div", { cls: "big", text: "No security findings" }), el("div", { text: "None of the analyzers that ran reported an issue. Check the Analyzers panel for tools that were skipped." })));
+      return;
+    }
+    var shown = findings.filter(function (f) {
+      if (!active[f.severity]) return false;
+      if (cat && f.category !== cat) return false;
+      if (!q) return true;
+      return [f.id, f.title, f.message, f.file, f.ruleId, (f.cwes || []).join(" "), (f.cves || []).join(" "), f.owasp, f.vulnerabilityId, f.dependency && f.dependency.artifact]
+        .join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    if (!shown.length) { box.appendChild(el("div", { cls: "empty" }, el("div", { cls: "big", text: "No findings match these filters" }), el("div", { text: "Clear the search or enable more severities." }))); return; }
+    shown.forEach(function (f) {
+      var d = el("details", { cls: "f", id: f.id });
+      var titleBox = el("div", null,
+        el("div", { cls: "ftitle" }, el("span", { cls: "mono muted", text: f.id + "  " }), label(f)),
+        el("div", { cls: "floc" }, (f.cwes && f.cwes[0] ? el("span", { cls: "pill", text: f.cwes[0] }) : null), loc(f)));
+      var s = el("summary", null, el("span", { cls: "badge b-" + f.severity, text: f.severity }), titleBox,
+        el("div", { cls: "score" }, String(f.score), el("small", { text: "/10" })),
+        el("div", { cls: "verdict " + f.exploitability.verdict, text: f.exploitability.verdict.toLowerCase() }));
+      d.appendChild(s);
+      d.addEventListener("toggle", function () { if (d.open && !d.dataset.filled) { d.appendChild(detail(f)); d.dataset.filled = "1"; } });
+      box.appendChild(d);
+    });
+  }
+  render();
+
+  var tools = document.getElementById("tools");
+  tools.appendChild(el("tr", null, el("th", { text: "Tool" }), el("th", { text: "Status" }), el("th", { text: "Findings" }), el("th", { text: "Time" }), el("th", { text: "Notes" })));
+  (data.toolRuns || []).forEach(function (t) {
+    tools.appendChild(el("tr", null, el("td", { cls: "mono", text: t.tool }), el("td", { cls: "st-" + t.status, text: t.status.toLowerCase() }),
+      el("td", { text: String(t.findings) }), el("td", { text: t.status === "SKIPPED" ? "-" : fmtMs(t.durationMs) }), el("td", { cls: "muted", text: t.message || "" })));
+  });
+  var timings = document.getElementById("timings"), tm = data.stageTimingsMs || {}, maxT = 1;
+  Object.keys(tm).forEach(function (k) { if (k !== "total") maxT = Math.max(maxT, tm[k]); });
+  Object.keys(tm).forEach(function (k) {
+    var b = el("span"); b.style.width = k === "total" ? "100%" : (100 * tm[k] / maxT) + "%";
+    if (k === "total") b.style.background = "var(--accent)";
+    timings.appendChild(el("div", { cls: "timing" }, el("span", { cls: "mono", text: k }), el("div", { cls: "bar" }, b), el("span", { text: fmtMs(tm[k]) })));
+  });
+  if (location.hash) { var target = document.getElementById(location.hash.slice(1)); if (target && target.tagName === "DETAILS") { target.open = true; target.scrollIntoView(); } }
+})();
+</script>
+</body>
+</html>

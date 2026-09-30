@@ -1,0 +1,46 @@
+#!/usr/bin/env sh
+# Launcher for the secpipe CLI. Finds the fat jar next to this script and checks the JDK first.
+set -e
+
+SOURCE="$0"
+while [ -h "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  case "$SOURCE" in /*) ;; *) SOURCE="$DIR/$SOURCE" ;; esac
+done
+BIN_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+HOME_DIR="$(dirname "$BIN_DIR")"
+
+JAR=""
+for candidate in "$HOME_DIR/lib/secpipe.jar" "$HOME_DIR/target/secpipe.jar"; do
+  if [ -f "$candidate" ]; then JAR="$candidate"; break; fi
+done
+if [ -z "$JAR" ]; then
+  echo "error: secpipe.jar not found." >&2
+  echo "hint:  build it first with: (cd \"$HOME_DIR\" && ./mvnw -q package -DskipTests)" >&2
+  exit 2
+fi
+
+if [ -n "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ]; then
+  JAVA="$JAVA_HOME/bin/java"
+elif command -v java >/dev/null 2>&1; then
+  JAVA="java"
+else
+  echo "error: no Java runtime found (JAVA_HOME is unset and 'java' is not on PATH)." >&2
+  echo "hint:  install JDK 21+ (e.g. https://adoptium.net) and make sure 'java -version' works." >&2
+  exit 2
+fi
+
+JAVA_MAJOR="$("$JAVA" -version 2>&1 | awk -F'"' '/version/ {print $2}' | awk -F. '{ if ($1 == "1") print $2; else print $1 }')"
+case "$JAVA_MAJOR" in
+  ''|*[!0-9]*) ;;
+  *)
+    if [ "$JAVA_MAJOR" -lt 21 ]; then
+      echo "error: secpipe needs Java 21 or newer, but '$JAVA' is Java $JAVA_MAJOR." >&2
+      echo "hint:  install JDK 21+ and point JAVA_HOME at it." >&2
+      exit 2
+    fi
+    ;;
+esac
+
+exec "$JAVA" ${SECPIPE_JAVA_OPTS:--Xss8m} -jar "$JAR" "$@"

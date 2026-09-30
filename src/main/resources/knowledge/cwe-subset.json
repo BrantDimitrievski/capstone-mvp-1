@@ -1,0 +1,193 @@
+{
+  "source": "https://cwe.mitre.org/ (curated subset relevant to Java applications and their dependencies)",
+  "cwes": {
+    "CWE-20": {
+      "name": "Improper Input Validation",
+      "description": "The product receives input but does not validate, or incorrectly validates, that it has the properties required to process it safely.",
+      "fix": "Validate all external input against an allow-list of expected type, length, format and range before using it."
+    },
+    "CWE-22": {
+      "name": "Path Traversal",
+      "description": "A pathname is built from external input without neutralizing sequences such as '../', so it can resolve to a location outside the restricted directory.",
+      "fix": "Resolve the path against a fixed base directory, canonicalize it and reject it unless it still starts with the base directory. Prefer mapping user input to an allow-list of file names.",
+      "example": "Path base = Paths.get(UPLOAD_DIR).toRealPath();\nPath target = base.resolve(fileName).normalize();\nif (!target.startsWith(base)) {\n    throw new SecurityException(\"Invalid path\");\n}"
+    },
+    "CWE-77": {
+      "name": "Command Injection",
+      "description": "A command is constructed from externally influenced input without neutralizing special elements that change the command.",
+      "fix": "Avoid building command strings; call a library API instead, or pass fixed arguments as an array after allow-list validation."
+    },
+    "CWE-78": {
+      "name": "OS Command Injection",
+      "description": "An operating system command is built from external input, letting an attacker run arbitrary commands with the application's privileges.",
+      "fix": "Do not pass user input to Runtime.exec or a shell. Use a Java API for the task, or validate the input against a strict allow-list and pass it as a separate argument to ProcessBuilder without invoking a shell.",
+      "example": "if (!host.matches(\"^[a-zA-Z0-9.-]{1,253}$\")) {\n    throw new IllegalArgumentException(\"Invalid host\");\n}\nProcess p = new ProcessBuilder(\"ping\", \"-c\", \"1\", host).start();"
+    },
+    "CWE-79": {
+      "name": "Cross-site Scripting (XSS)",
+      "description": "User-controllable input is placed in a web page without neutralization, so it executes as script in other users' browsers.",
+      "fix": "Encode output for the context (HTML body, attribute, JavaScript, URL) with a vetted encoder such as the OWASP Java Encoder, and use templating engines with auto-escaping."
+    },
+    "CWE-89": {
+      "name": "SQL Injection",
+      "description": "An SQL command is built from external input without neutralization, so the input can change the query's logic, read or modify data, or run administrative operations.",
+      "fix": "Use parameterized queries (PreparedStatement with ? placeholders, JPA named parameters, or Spring JdbcTemplate arguments). Never concatenate input into SQL. Apply least-privilege database accounts.",
+      "example": "String sql = \"SELECT * FROM users WHERE username = ?\";\ntry (PreparedStatement ps = connection.prepareStatement(sql)) {\n    ps.setString(1, username);\n    ResultSet rs = ps.executeQuery();\n}"
+    },
+    "CWE-94": {
+      "name": "Code Injection",
+      "description": "Code is generated or evaluated from external input, allowing an attacker to run arbitrary code.",
+      "fix": "Never evaluate user input as code or expressions; restrict expression languages to a safe, sandboxed subset."
+    },
+    "CWE-113": {
+      "name": "HTTP Response Splitting",
+      "description": "CR/LF characters from external input are written into HTTP headers.",
+      "fix": "Strip or reject CR and LF characters before writing input into headers; use framework APIs that validate header values."
+    },
+    "CWE-117": {
+      "name": "Log Injection",
+      "description": "Unsanitized input is written to logs, allowing forged log entries.",
+      "fix": "Encode or strip newline characters from input before logging, or use structured logging."
+    },
+    "CWE-200": {
+      "name": "Exposure of Sensitive Information",
+      "description": "Sensitive information is exposed to an actor that is not authorized to access it.",
+      "fix": "Return generic messages to clients and keep sensitive details in protected server-side logs."
+    },
+    "CWE-209": {
+      "name": "Error Message Containing Sensitive Information",
+      "description": "Error messages or stack traces reveal implementation details that help an attacker.",
+      "fix": "Log exceptions with a logging framework and show users a generic error message; never print stack traces to responses or standard output in production."
+    },
+    "CWE-259": {
+      "name": "Hard-coded Password",
+      "description": "A password is embedded in the source code.",
+      "fix": "Load passwords from environment variables or a secret manager and rotate the exposed one."
+    },
+    "CWE-287": {
+      "name": "Improper Authentication",
+      "description": "The product does not prove, or insufficiently proves, that an actor's claimed identity is correct.",
+      "fix": "Use a vetted authentication framework (e.g. Spring Security) and verify credentials and tokens on every request."
+    },
+    "CWE-295": {
+      "name": "Improper Certificate Validation",
+      "description": "TLS certificates are not validated, enabling man-in-the-middle attacks.",
+      "fix": "Do not install trust-all TrustManagers or HostnameVerifiers; use the platform defaults."
+    },
+    "CWE-321": {
+      "name": "Use of Hard-coded Cryptographic Key",
+      "description": "A cryptographic key is embedded in the code, so anyone with access to the code or binary can decrypt data or forge signatures (for example JWTs).",
+      "fix": "Generate keys with a secure random source and load them from a key store, KMS or environment secret at runtime. Rotate the exposed key.",
+      "example": "byte[] key = Base64.getDecoder().decode(System.getenv(\"JWT_SIGNING_KEY\"));\nSecretKeySpec spec = new SecretKeySpec(key, \"HmacSHA256\");"
+    },
+    "CWE-327": {
+      "name": "Use of a Broken or Risky Cryptographic Algorithm",
+      "description": "The code uses a broken or risky cryptographic algorithm or mode (DES, RC4, ECB, old TLS versions), which can expose sensitive data.",
+      "fix": "Use modern authenticated encryption such as AES/GCM/NoPadding with a random 12-byte IV and 256-bit keys, and TLS 1.2+.",
+      "example": "Cipher cipher = Cipher.getInstance(\"AES/GCM/NoPadding\");\nbyte[] iv = new byte[12];\nnew SecureRandom().nextBytes(iv);\ncipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));"
+    },
+    "CWE-328": {
+      "name": "Use of Weak Hash",
+      "description": "A weak hash algorithm (MD5, SHA-1) is used where collision or preimage resistance is needed, such as for passwords or integrity checks.",
+      "fix": "Use SHA-256 or better for integrity, and a slow salted password hash (bcrypt, scrypt, Argon2 or PBKDF2) for passwords.",
+      "example": "PasswordEncoder encoder = new BCryptPasswordEncoder();\nString hash = encoder.encode(rawPassword);"
+    },
+    "CWE-329": {
+      "name": "Generation of Predictable IV with CBC Mode",
+      "description": "The initialization vector is constant or predictable, weakening the encryption.",
+      "fix": "Generate a fresh random IV with SecureRandom for every encryption and store it alongside the ciphertext."
+    },
+    "CWE-330": {
+      "name": "Use of Insufficiently Random Values",
+      "description": "Predictable random values are used in a security context.",
+      "fix": "Use java.security.SecureRandom for tokens, keys and identifiers."
+    },
+    "CWE-352": {
+      "name": "Cross-Site Request Forgery (CSRF)",
+      "description": "The application does not verify that a state-changing request was intentionally made by the user.",
+      "fix": "Enable CSRF protection (synchronizer tokens or SameSite cookies) for state-changing requests."
+    },
+    "CWE-400": {
+      "name": "Uncontrolled Resource Consumption",
+      "description": "Input can make the component consume excessive CPU, memory or other resources (denial of service).",
+      "fix": "Upgrade the affected component and enforce input size and rate limits."
+    },
+    "CWE-434": {
+      "name": "Unrestricted Upload of File with Dangerous Type",
+      "description": "Uploaded files are not restricted by type, allowing executable content.",
+      "fix": "Validate file type by content, store uploads outside the web root with generated names."
+    },
+    "CWE-502": {
+      "name": "Deserialization of Untrusted Data",
+      "description": "Untrusted data is deserialized with a mechanism that can instantiate arbitrary classes, enabling gadget-chain attacks up to remote code execution.",
+      "fix": "Do not deserialize untrusted data with ObjectInputStream, XMLDecoder or unrestricted polymorphic JSON. Use data-only formats (JSON into fixed DTOs) or apply an allow-list ObjectInputFilter.",
+      "example": "ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(\"com.example.dto.*;!*\");\nObjectInputStream in = new ObjectInputStream(input);\nin.setObjectInputFilter(filter);"
+    },
+    "CWE-532": {
+      "name": "Insertion of Sensitive Information into Log File",
+      "description": "Sensitive data such as passwords or tokens is written to logs.",
+      "fix": "Mask or omit secrets and personal data before logging."
+    },
+    "CWE-547": {
+      "name": "Use of Hard-coded, Security-relevant Constants",
+      "description": "Security-relevant values such as IP addresses are hard-coded, making the code brittle and exposing infrastructure details.",
+      "fix": "Move addresses and other environment-specific values into configuration."
+    },
+    "CWE-601": {
+      "name": "Open Redirect",
+      "description": "The application redirects to a URL taken from user input.",
+      "fix": "Redirect only to relative paths or to an allow-list of trusted destinations."
+    },
+    "CWE-611": {
+      "name": "XML External Entity (XXE)",
+      "description": "An XML parser processes external entities from untrusted documents, allowing file disclosure or SSRF.",
+      "fix": "Disable DOCTYPE declarations and external entities on the parser factory (disallow-doctype-decl = true)."
+    },
+    "CWE-643": {
+      "name": "XPath Injection",
+      "description": "XPath expressions are built from external input.",
+      "fix": "Use parameterized XPath (XPathVariableResolver) and validate input."
+    },
+    "CWE-674": {
+      "name": "Uncontrolled Recursion",
+      "description": "Crafted input causes deep recursion and a stack overflow (denial of service).",
+      "fix": "Upgrade the affected component and limit nesting depth of parsed input."
+    },
+    "CWE-770": {
+      "name": "Allocation of Resources Without Limits",
+      "description": "Resources are allocated without limits, enabling denial of service.",
+      "fix": "Upgrade the affected component and enforce quotas and size limits."
+    },
+    "CWE-798": {
+      "name": "Use of Hard-coded Credentials",
+      "description": "Credentials such as passwords, API keys or tokens are embedded in the source code, where anyone with repository or binary access can read and reuse them.",
+      "fix": "Remove the secret from the code and git history, rotate it, and read it at runtime from environment variables, a secrets manager or the platform's credential store.",
+      "example": "String dbPassword = System.getenv(\"DB_PASSWORD\");\nif (dbPassword == null) {\n    throw new IllegalStateException(\"DB_PASSWORD is not set\");\n}"
+    },
+    "CWE-862": {
+      "name": "Missing Authorization",
+      "description": "The product does not check whether the actor is allowed to perform an action.",
+      "fix": "Enforce authorization checks on every protected endpoint and resource."
+    },
+    "CWE-917": {
+      "name": "Expression Language Injection",
+      "description": "Input is evaluated by an expression language (for example JNDI lookups in Log4j message patterns), enabling remote code execution.",
+      "fix": "Upgrade the affected library and never evaluate expressions built from user input."
+    },
+    "CWE-918": {
+      "name": "Server-Side Request Forgery (SSRF)",
+      "description": "The server fetches a URL supplied by the user, letting attackers reach internal services.",
+      "fix": "Validate destination hosts against an allow-list and block internal address ranges."
+    },
+    "CWE-1104": {
+      "name": "Use of Unmaintained Third Party Components",
+      "description": "The product relies on components that are outdated or no longer maintained.",
+      "fix": "Upgrade to a supported release and track dependencies with automated update tooling."
+    },
+    "CWE-1333": {
+      "name": "Inefficient Regular Expression Complexity (ReDoS)",
+      "description": "A regular expression with catastrophic backtracking can be exploited for denial of service.",
+      "fix": "Upgrade the affected component or rewrite the expression to avoid nested quantifiers."
+    }
+  }
+}

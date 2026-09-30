@@ -1,0 +1,60 @@
+{
+  "description": "Per-CWE inputs for generated security regression tests. 'vulnerable' is a regex that must not match the file unless 'mitigation' (regex) also matches. 'payloads' feed the behavioural test skeleton.",
+  "templates": {
+    "CWE-89": {
+      "label": "SQL injection",
+      "vulnerable": "(?i)\"[^\"]*\\b(select|insert|update|delete|where|from)\\b[^\"]*\"\\s*\\+\\s*[A-Za-z_(]",
+      "payloads": ["' OR '1'='1", "admin'--", "1; DROP TABLE users--", "' UNION SELECT null, username, password FROM users--"],
+      "behaviour": "Call the query method with each payload against a test database and assert that no extra rows are returned and no SQL error leaks.",
+      "assertion": "assertTrue(result.isEmpty(), \"injection payload must not match any row\");"
+    },
+    "CWE-22": {
+      "label": "path traversal",
+      "vulnerable": "new\\s+File(InputStream|OutputStream|Reader|Writer)?\\s*\\(|Paths\\.get\\s*\\(|Path\\.of\\s*\\(",
+      "mitigation": "(getCanonicalPath|toRealPath|normalize\\(\\))[\\s\\S]*startsWith",
+      "payloads": ["../../../../etc/passwd", "..\\\\..\\\\..\\\\windows\\\\win.ini", "%2e%2e%2f%2e%2e%2fetc%2fpasswd", "/etc/passwd", "....//....//etc/passwd"],
+      "behaviour": "Call the file-handling method with each payload and assert it rejects the input instead of reading outside the base directory.",
+      "assertion": "assertThrows(SecurityException.class, () -> target.readFile(payload));"
+    },
+    "CWE-78": {
+      "label": "OS command injection",
+      "vulnerable": "exec\\s*\\(\\s*\"[^\"]*\"\\s*\\+|\"(/bin/)?(ba)?sh\"\\s*,\\s*\"-c\"|\"cmd(\\.exe)?\"\\s*,\\s*\"/c\"|exec\\s*\\(\\s*[a-z]\\w*\\s*\\)",
+      "payloads": ["127.0.0.1; cat /etc/passwd", "127.0.0.1 && whoami", "`id`", "$(id)", "| ls -la", "127.0.0.1\nid"],
+      "behaviour": "Call the method that runs the command with each payload and assert the input is rejected by allow-list validation.",
+      "assertion": "assertThrows(IllegalArgumentException.class, () -> target.ping(payload));"
+    },
+    "CWE-798": {
+      "label": "hard-coded credential",
+      "vulnerable": "(?i)\\b\\w*(password|passwd|pwd|secret|api_?key|token)\\w*\\s*=\\s*\"[^\"$]{4,}\"",
+      "behaviour": "Assert that the credential is read from configuration (e.g. System.getenv) and that the application fails fast when it is missing."
+    },
+    "CWE-321": {
+      "label": "hard-coded cryptographic key",
+      "vulnerable": "new\\s+SecretKeySpec\\s*\\(\\s*\"|(?i)\\b\\w*(secret|signing|jwt|hmac|aes)_?key\\w*\\s*=\\s*\"[^\"$]{4,}\"|HMAC(256|384|512)\\s*\\(\\s*\"",
+      "behaviour": "Assert that the signing/encryption key is loaded from a key store or environment secret and differs between environments."
+    },
+    "CWE-259": {
+      "label": "hard-coded password",
+      "vulnerable": "(?i)\\b\\w*(password|passwd|pwd)\\w*\\s*=\\s*\"[^\"$]{4,}\"",
+      "behaviour": "Assert that the password is read from configuration."
+    },
+    "CWE-327": {
+      "label": "broken cryptographic algorithm",
+      "vulnerable": "(?i)getInstance\\s*\\(\\s*\"(DES|DESede|3DES|RC2|RC4|ARCFOUR|Blowfish|AES\"|AES/ECB|[^\"]*/ECB/|SSL\"|TLSv1\"|TLSv1\\.1\")",
+      "behaviour": "Encrypt the same plaintext twice and assert the ciphertexts differ (random IV) and that the transformation is AES/GCM/NoPadding."
+    },
+    "CWE-328": {
+      "label": "weak hash",
+      "vulnerable": "(?i)getInstance\\s*\\(\\s*\"(MD2|MD4|MD5|SHA-?1|SHA)\"|DigestUtils\\.(md5|sha1|md2)",
+      "behaviour": "Hash a password and assert the stored value uses a slow salted algorithm (for example starts with $2a$ for bcrypt)."
+    },
+    "CWE-502": {
+      "label": "unsafe deserialization",
+      "vulnerable": "new\\s+ObjectInputStream\\s*\\(|new\\s+XMLDecoder\\s*\\(|enableDefaultTyping\\s*\\(",
+      "mitigation": "setObjectInputFilter",
+      "payloads": ["rO0ABXNyABFqYXZhLnV0aWwuSGFzaE1hcAUH2sHDFmDRAwACRgAKbG9hZEZhY3RvckkACXRocmVzaG9sZHhwP0AAAAAAAAx3CAAAABAAAAAAeA=="],
+      "behaviour": "Feed a serialized object of an unexpected class (e.g. a ysoserial gadget, base64 above is a harmless HashMap) and assert it is rejected with InvalidClassException.",
+      "assertion": "assertThrows(java.io.InvalidClassException.class, () -> target.deserialize(java.util.Base64.getDecoder().decode(payload)));"
+    }
+  }
+}
