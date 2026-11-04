@@ -47,7 +47,8 @@ tail -n +2 eval/fix-commits.csv | while IFS=, read -r id cve cwe repo commit sou
         [ "$side" = "before" ] && ref="$commit~1"
         git -C "$dir" checkout -q -f "$ref"
         mkdir -p "$OUT/$id/$side"
-        java -jar "$JAR" scan "$dir" "${flags[@]}" -o "$OUT/$id/$side" > "$OUT/$id/$side/scan.log" 2>&1
+        # big repos (geotools, openam) run out of memory on the default heap
+        java ${JAVA_OPTS:--Xmx6g} -jar "$JAR" scan "$dir" "${flags[@]}" -o "$OUT/$id/$side" > "$OUT/$id/$side/scan.log" 2>&1
         echo "  $side: done"
     done
 done
