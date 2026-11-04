@@ -1,0 +1,21 @@
+file,cwe,vulnerable,why
+OrderSearch.java,89,true,request param glued into sql
+InvoiceLookup.java,89,false,prepared statement
+TagFilter.java,89,false,param gets replaced by a fixed value before the query
+ReportSort.java,89,true,only a length check then param goes into order by
+HostCheck.java,78,true,param glued into exec string
+DiskUsage.java,78,false,param only goes to the log; command is fixed
+ArchiveJob.java,78,false,strict regex and separate args to ProcessBuilder
+ScriptRunner.java,78,true,param passed to a helper that runs sh -c (needs inter-procedural tracking)
+AttachmentDownload.java,22,true,param used as file name under base dir with no check
+AvatarServe.java,22,false,normalize + startsWith(base) check
+ThemeLoader.java,22,false,param only picks between fixed paths
+LogViewer.java,22,true,single replace of ../ is bypassable with ....//
+PasswordHasher.java,328,true,md5 for passwords
+FileChecksum.java,328,false,sha-256 for file checksums
+ConfigEncryptor.java,327,true,des in ecb mode
+BackupEncryptor.java,327,false,aes-gcm with random iv
+MailClient.java,798,true,smtp password hard-coded
+NewsletterClient.java,798,false,credentials read from env vars
+CartRestore.java,502,true,ObjectInputStream on request body with no filter
+PrefsRestore.java,502,false,ObjectInputFilter allowlist set before readObject
