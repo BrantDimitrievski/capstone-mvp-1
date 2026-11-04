@@ -20,6 +20,14 @@ if secpipe flags a file the fix changed. then we scan right after the fix to see
 
 comparing the old vs recent hit rate is one way to see if memory is helping.
 
+**3. changed benchmark** (`mutate/`)
+the two other ideas from the oct 21 meeting, done on owasp benchmark itself (the 5 categories secpipe covers, 1505 cases):
+- mutate: same logic, different look. new class/package/variable/method names, no comments, class members shuffled.
+  if secpipe only "remembers" benchmark files, its answers change here
+- inject: take a safe sqli/cmdi/pathtraver case and add one line (`bar = param;`) right before the sink so user input reaches it.
+  the file is now really vulnerable but the benchmark answer key still says safe, so memory would say safe
+we don't reorder statements inside methods, too easy to change what the code does by accident.
+
 ## running it
 
 needs jdk 21+, git, python 3. run from the repo root.
@@ -31,6 +39,8 @@ AI=1 bash eval/run_samples.sh                  # same with ai on (set SECPIPE_LL
 bash eval/run_fix_commits.sh                   # all 29 fixes, ai off. slow, downloads each repo
 ONLY=GHSA-89m4-43j5-vhhx bash eval/run_fix_commits.sh   # just one
 AI=1 OUT=eval/out-ai bash eval/run_fix_commits.sh
+
+BENCH=~/BenchmarkJava bash eval/mutate/run_mutations.sh       # benchmark original vs mutated vs injected, ~2 min
 ```
 
 results go to `eval/out/` (ignored by git). each run prints a score table.
@@ -42,6 +52,8 @@ results go to `eval/out/` (ignored by git). each run prints a score table.
 - `get_changed_files.py` - fills the changed_files column (already done, only rerun if you add rows)
 - `run_samples.sh`, `run_fix_commits.sh` - run secpipe
 - `score_samples.py`, `score_fix_commits.py`, `sarif_util.py` - scoring
+- `mutate/Mutator.java` - makes the mutated / injected copies (uses javaparser from secpipe.jar, no extra deps)
+- `mutate/run_mutations.sh`, `mutate/score_mutations.py` - run + compare
 
 ## notes
 
